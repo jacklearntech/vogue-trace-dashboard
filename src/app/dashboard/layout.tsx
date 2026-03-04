@@ -1,4 +1,3 @@
-
 "use client"
 
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
@@ -6,6 +5,7 @@ import { AppSidebar } from "@/components/dashboard/app-sidebar"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Search, Bell, User } from "lucide-react"
 import { Input } from "@/components/ui/input"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 export default function DashboardLayout({
   children,
@@ -27,7 +27,8 @@ export default function DashboardLayout({
               />
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <ThemeToggle />
             <button className="relative p-2 text-muted-foreground hover:text-foreground transition-colors">
               <Bell className="h-5 w-5" />
               <span className="absolute top-2 right-2 flex h-2 w-2 rounded-full bg-primary" />
