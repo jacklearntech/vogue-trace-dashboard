@@ -28,10 +28,6 @@ export type SummarizeTrendInsightsInput = z.infer<typeof SummarizeTrendInsightsI
 const SummarizeTrendInsightsOutputSchema = z.string().describe('An AI-generated summary of the selected fashion trends, covering key characteristics, current status, and potential market implications.');
 export type SummarizeTrendInsightsOutput = z.infer<typeof SummarizeTrendInsightsOutputSchema>;
 
-export async function summarizeTrendInsights(input: SummarizeTrendInsightsInput): Promise<SummarizeTrendInsightsOutput> {
-  return summarizeTrendInsightsFlow(input);
-}
-
 const prompt = ai.definePrompt({
   name: 'summarizeTrendInsightsPrompt',
   input: { schema: SummarizeTrendInsightsInputSchema },
@@ -68,3 +64,7 @@ const summarizeTrendInsightsFlow = ai.defineFlow(
     return output!;
   }
 );
+
+export async function summarizeTrendInsights(input: SummarizeTrendInsightsInput): Promise<SummarizeTrendInsightsOutput> {
+  return summarizeTrendInsightsFlow(input);
+}

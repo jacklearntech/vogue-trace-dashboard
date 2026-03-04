@@ -4,12 +4,15 @@ import { useState } from 'react'
 import { summarizeTrendInsights } from '@/ai/flows/ai-summarize-trend-insights'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
-import { Sparkles, Loader2, BrainCircuit, RefreshCw, CheckCircle2 } from 'lucide-react'
+import { Sparkles, Loader2, BrainCircuit, RefreshCw, CheckCircle2, AlertTriangle } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import metaData from '@/app/data/meta.json'
+import categoryDataRaw from '@/app/data/categoryBigNumbers.json'
+import { useToast } from '@/hooks/use-toast'
 
 export default function InsightPage() {
+  const { toast } = useToast()
   // Use data from meta.json which lists all tracked categories
   const [selectedCategories, setSelectedCategories] = useState<string[]>(metaData.categories.slice(0, 5))
   const [insight, setInsight] = useState<string | null>(null)
@@ -22,24 +25,45 @@ export default function InsightPage() {
   }
 
   const generateInsights = async () => {
-    if (selectedCategories.length === 0) return
+    if (selectedCategories.length === 0) {
+      toast({
+        title: "No Scope Selected",
+        description: "Please select at least one category to analyze.",
+        variant: "destructive"
+      })
+      return
+    }
 
     setLoading(true)
+    setInsight(null)
+    
     try {
-      // Mapping categories to the expected trend schema for the AI flow using real names from meta.json
-      const mockTrendData = selectedCategories.map(cat => ({
-        name: cat,
-        category: "Tracked Category",
-        status: "Active Monitoring",
-        description: `Market intelligence analysis for ${cat} based on latest social listening cycle.`,
-        growthRate: 25,
-        marketShare: 5
-      }))
+      // Mapping categories to the expected trend schema for the AI flow
+      // We enrich this with actual data from categoryBigNumbers if available
+      const mockTrendData = selectedCategories.map(cat => {
+        const accCat = categoryDataRaw.blocks.ACC.categories.find((c: any) => c.name === cat);
+        const appCat = categoryDataRaw.blocks.APP.categories.find((c: any) => c.name === cat);
+        const realData = accCat || appCat;
+
+        return {
+          name: cat,
+          category: realData ? (accCat ? "Accessories" : "Apparel") : "Tracked Trend",
+          status: realData ? "Active Monitoring" : "Emerging Discussion",
+          description: `Strategic market intelligence analysis for ${cat} based on current social listening and sales velocity data.`,
+          growthRate: realData ? Math.round(realData.currentYtdGrowth * 100) : 25,
+          marketShare: realData ? Math.round((realData.currentJan / 1000000) * 10) / 10 : 5
+        }
+      })
       
       const result = await summarizeTrendInsights({ trends: mockTrendData })
       setInsight(result)
     } catch (error) {
       console.error("Failed to generate insights:", error)
+      toast({
+        title: "Synthesis Failed",
+        description: "The AI model encountered an error. Please try again or select fewer categories.",
+        variant: "destructive"
+      })
     } finally {
       setLoading(false)
     }
@@ -64,11 +88,15 @@ export default function InsightPage() {
                 {metaData.categories.map((cat) => (
                   <div 
                     key={cat} 
-                    className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer" 
+                    className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer group" 
                     onClick={() => handleToggle(cat)}
                   >
-                    <Checkbox checked={selectedCategories.includes(cat)} onCheckedChange={() => handleToggle(cat)} />
-                    <span className="text-sm font-medium">{cat}</span>
+                    <Checkbox 
+                      checked={selectedCategories.includes(cat)} 
+                      onCheckedChange={() => {}} // Toggle handled by parent div to prevent double events
+                      className="pointer-events-none"
+                    />
+                    <span className="text-sm font-medium group-hover:text-primary transition-colors">{cat}</span>
                   </div>
                 ))}
               </div>
