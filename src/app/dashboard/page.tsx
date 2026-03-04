@@ -1,8 +1,10 @@
 
 "use client"
 
+import { useState, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { FASHION_TRENDS } from "@/lib/mock-data"
+import categoryDataRaw from "@/app/data/categoryBigNumbers.json"
+import configData from "@/app/data/config.json"
 import { 
   TrendingUp, 
   Users, 
@@ -10,47 +12,103 @@ import {
   Zap, 
   ArrowUpRight, 
   ArrowDownRight,
-  Plus
+  Calendar as CalendarIcon
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 export default function DashboardPage() {
-  const totalTrends = FASHION_TRENDS.length
-  const activeCollections = Array.from(new Set(FASHION_TRENDS.flatMap(t => t.associatedCollections || []))).length
-  const avgGrowth = Math.round(FASHION_TRENDS.reduce((acc, t) => acc + t.growthRate, 0) / totalTrends)
-  const highImpactTrends = FASHION_TRENDS.filter(t => t.growthRate > 30).length
+  // Extract all available months from the data (assuming ACC and APP have same months)
+  const availableMonths = categoryDataRaw.blocks.APP.months
+  const [selectedMonth, setSelectedMonth] = useState(availableMonths[availableMonths.length - 1])
+
+  // Helper to get translation
+  const getTranslation = (blockKey: string, categoryName: string) => {
+    const blockConfig = configData.categoryOverviewConfigs.find(
+      c => c.sheet === (blockKey === "ACC" ? "BAGS" : "PANTS") || c.sheet === blockKey
+    )
+    return blockConfig?.en?.[categoryName] || categoryName
+  }
+
+  const dashboardStats = useMemo(() => {
+    const accBlock = categoryDataRaw.blocks.ACC
+    const appBlock = categoryDataRaw.blocks.APP
+
+    const accTotalForMonth = accBlock.totalSeries.find(s => s.month === selectedMonth)
+    const appTotalForMonth = appBlock.totalSeries.find(s => s.month === selectedMonth)
+
+    const totalBuzz = (accTotalForMonth?.value || 0) + (appTotalForMonth?.value || 0)
+    
+    // Average YoY for high-level (simplified)
+    const avgYoY = (
+      ((accTotalForMonth?.yoy || 0) + (appTotalForMonth?.yoy || 0)) / 2 * 100
+    ).toFixed(1)
+
+    const totalCategories = accBlock.categories.length + appBlock.categories.length - 2 // excluding 'ttl' entries
+
+    // Find fastest growing category for the month across both blocks
+    const allCats = [
+      ...accBlock.categories.filter(c => c.name !== 'ttl').map(c => ({ ...c, block: 'ACC' })),
+      ...appBlock.categories.filter(c => c.name !== 'ttl').map(c => ({ ...c, block: 'APP' }))
+    ]
+
+    const growths = allCats.map(cat => {
+      const monthData = cat.series.find(s => s.month === selectedMonth)
+      return {
+        name: getTranslation(cat.block, cat.name),
+        growth: monthData?.yoy ? (monthData.yoy * 100) : 0,
+        buzz: monthData?.value || 0
+      }
+    })
+
+    const fastestGrower = growths.reduce((prev, current) => (prev.growth > current.growth) ? prev : current)
+
+    return {
+      totalBuzz,
+      avgYoY,
+      totalCategories,
+      fastestGrower,
+      topGrowers: growths.sort((a, b) => b.growth - a.growth).slice(0, 5)
+    }
+  }, [selectedMonth])
 
   const stats = [
     { 
-      label: "Total Trends", 
-      value: totalTrends, 
-      change: "+12%", 
-      increasing: true, 
+      label: "Aggregate Buzz", 
+      value: `${(dashboardStats.totalBuzz / 1000000).toFixed(1)}M`, 
+      change: `${dashboardStats.avgYoY}%`, 
+      increasing: parseFloat(dashboardStats.avgYoY) >= 0, 
       icon: Layers,
       color: "text-primary"
     },
     { 
-      label: "Active Collections", 
-      value: activeCollections, 
-      change: "+5%", 
+      label: "Tracked Categories", 
+      value: dashboardStats.totalCategories, 
+      change: "Stable", 
       increasing: true, 
       icon: Users,
       color: "text-secondary"
     },
     { 
-      label: "Avg. Growth Rate", 
-      value: `${avgGrowth}%`, 
-      change: "+2.4%", 
+      label: "Top Growth", 
+      value: `${dashboardStats.fastestGrower.growth.toFixed(0)}%`, 
+      change: dashboardStats.fastestGrower.name, 
       increasing: true, 
       icon: TrendingUp,
       color: "text-accent"
     },
     { 
-      label: "High Impact", 
-      value: highImpactTrends, 
-      change: "-1%", 
-      increasing: false, 
+      label: "Market Velocity", 
+      value: "High", 
+      change: "Active", 
+      increasing: true, 
       icon: Zap,
       color: "text-yellow-500"
     }
@@ -58,22 +116,30 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Market Overview</h1>
-          <p className="text-muted-foreground">Snapshot of current fashion intelligence metrics.</p>
+          <h1 className="text-3xl font-bold tracking-tight">Market Pulse</h1>
+          <p className="text-muted-foreground">High-level intelligence from {selectedMonth} dataset.</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="border-primary/20 hover:bg-primary/10">Export PDF</Button>
-          <Button className="bg-primary text-white hover:bg-primary/90">
-            <Plus className="mr-2 h-4 w-4" /> New Monitor
-          </Button>
+          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+            <SelectTrigger className="w-[180px] bg-card/50 border-border/50">
+              <CalendarIcon className="mr-2 h-4 w-4 opacity-50" />
+              <SelectValue placeholder="Select Month" />
+            </SelectTrigger>
+            <SelectContent>
+              {availableMonths.map((m) => (
+                <SelectItem key={m} value={m}>{m}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button variant="outline" className="border-primary/20 hover:bg-primary/10 hidden sm:flex">Export Data</Button>
         </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat, i) => (
-          <Card key={i} className="border-border/50 bg-card/50 transition-all hover:scale-[1.02]">
+          <Card key={i} className="border-border/50 bg-card/50 transition-all hover:shadow-lg hover:shadow-primary/5">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {stat.label}
@@ -92,7 +158,7 @@ export default function DashboardPage() {
                     <ArrowDownRight className="h-3 w-3" /> {stat.change}
                   </span>
                 )}
-                <span className="text-muted-foreground">vs last month</span>
+                <span className="text-muted-foreground ml-1">indicator</span>
               </p>
             </CardContent>
           </Card>
@@ -102,31 +168,33 @@ export default function DashboardPage() {
       <div className="grid gap-6 lg:grid-cols-7">
         <Card className="lg:col-span-4 border-border/50 bg-card/50">
           <CardHeader>
-            <CardTitle>Fastest Growing Trends</CardTitle>
-            <CardDescription>Trends with significant velocity in the last 30 days.</CardDescription>
+            <CardTitle>Category Momentum</CardTitle>
+            <CardDescription>Top performing categories by YoY growth in {selectedMonth}.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
-              {FASHION_TRENDS.sort((a, b) => b.growthRate - a.growthRate).slice(0, 4).map((trend) => (
-                <div key={trend.id} className="flex items-center justify-between">
+              {dashboardStats.topGrowers.map((cat, index) => (
+                <div key={index} className="flex items-center justify-between">
                   <div className="space-y-1">
-                    <p className="text-sm font-medium leading-none">{trend.name}</p>
-                    <p className="text-xs text-muted-foreground">{trend.category}</p>
+                    <p className="text-sm font-medium leading-none">{cat.name}</p>
+                    <p className="text-xs text-muted-foreground">{cat.buzz.toLocaleString()} buzz volume</p>
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="w-32 h-2 rounded-full bg-muted overflow-hidden hidden sm:block">
                       <div 
-                        className="h-full bg-primary transition-all duration-1000" 
-                        style={{ width: `${Math.min(100, Math.max(0, trend.growthRate + 20))}%` }} 
+                        className={`h-full transition-all duration-1000 ${cat.growth >= 0 ? 'bg-primary' : 'bg-destructive'}`} 
+                        style={{ width: `${Math.min(100, Math.abs(cat.growth))}%` }} 
                       />
                     </div>
-                    <span className="text-sm font-semibold text-primary">{trend.growthRate}%</span>
+                    <span className={`text-sm font-semibold ${cat.growth >= 0 ? 'text-primary' : 'text-destructive'}`}>
+                      {cat.growth > 0 ? '+' : ''}{cat.growth.toFixed(1)}%
+                    </span>
                   </div>
                 </div>
               ))}
             </div>
             <Button variant="link" asChild className="mt-6 p-0 text-primary">
-              <Link href="/trends">View all trends &rarr;</Link>
+              <Link href="/analytics">Explore detailed analytics &rarr;</Link>
             </Button>
           </CardContent>
         </Card>
@@ -136,24 +204,24 @@ export default function DashboardPage() {
             <Zap className="h-40 w-40 text-primary" strokeWidth={1} />
           </div>
           <CardHeader>
-            <CardTitle>Actionable Insights</CardTitle>
-            <CardDescription>AI-identified opportunities based on market shift.</CardDescription>
+            <CardTitle>Market Insights</CardTitle>
+            <CardDescription>Automated observations for {selectedMonth}.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
-              <h4 className="font-semibold text-primary text-sm mb-1">Saturation Alert</h4>
+              <h4 className="font-semibold text-primary text-sm mb-1">Growth Leader</h4>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                "Quiet Luxury" is approaching peak market share (22%). Predicted shift towards bold textures in Q4.
+                {dashboardStats.fastestGrower.name} is showing explosive momentum at {dashboardStats.fastestGrower.growth.toFixed(1)}% YoY. High probability of retail saturation in coming cycles.
               </p>
             </div>
             <div className="rounded-lg border border-secondary/20 bg-secondary/5 p-4">
-              <h4 className="font-semibold text-secondary text-sm mb-1">Emerging Synthesis</h4>
+              <h4 className="font-semibold text-secondary text-sm mb-1">Buzz Concentration</h4>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Convergence of "Cyberpunk Utility" and "Neo-Gothic" accessories observed in underground digital showrooms.
+                Total market conversation reached {(dashboardStats.totalBuzz / 1000000).toFixed(1)}M, indicating a {parseFloat(dashboardStats.avgYoY) > 0 ? 'expansion' : 'contraction'} in overall consumer interest.
               </p>
             </div>
             <Button className="w-full bg-secondary text-white hover:bg-secondary/90 mt-2" asChild>
-              <Link href="/insights">Generate Custom Summary</Link>
+              <Link href="/insights">Synthesize trends</Link>
             </Button>
           </CardContent>
         </Card>
