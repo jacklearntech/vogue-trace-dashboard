@@ -1,0 +1,23 @@
+
+{
+  "placeholderImages": [
+    {
+      "id": "hero-fashion",
+      "description": "High fashion editorial background",
+      "imageUrl": "https://picsum.photos/seed/fashion1/1200/800",
+      "imageHint": "fashion editorial"
+    },
+    {
+      "id": "trend-apparel",
+      "description": "Modern apparel trend",
+      "imageUrl": "https://picsum.photos/seed/apparel/600/400",
+      "imageHint": "modern clothing"
+    },
+    {
+      "id": "trend-accessories",
+      "description": "Luxury accessory trend",
+      "imageUrl": "https://picsum.photos/seed/acc/600/400",
+      "imageHint": "luxury jewelry"
+    }
+  ]
+}
