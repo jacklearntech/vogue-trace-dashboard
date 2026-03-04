@@ -4,6 +4,8 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { 
   LayoutDashboard, 
+  Trophy, 
+  Lightbulb,
   LogOut
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -11,6 +13,8 @@ import { useAuth } from "@/lib/auth-context"
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Ranking", href: "/ranking", icon: Trophy },
+  { name: "Insight", href: "/insight", icon: Lightbulb },
 ]
 
 export function NavMain() {
