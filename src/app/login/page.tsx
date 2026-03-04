@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState } from 'react'
@@ -38,9 +37,9 @@ export default function LoginPage() {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#1F1A20] via-transparent to-transparent opacity-80" />
         <div className="absolute bottom-12 left-12 right-12">
-          <h1 className="text-6xl font-bold tracking-tighter text-white mb-4">VogueTrace</h1>
+          <h1 className="text-5xl font-bold tracking-tighter text-white mb-4 uppercase">MLB Social Listening</h1>
           <p className="text-xl text-muted-foreground max-w-md">
-            Deciphering the DNA of modern fashion through AI-powered trend intelligence.
+            Deciphering the DNA of fashion trends through AI-powered social intelligence.
           </p>
         </div>
       </div>
@@ -48,14 +47,14 @@ export default function LoginPage() {
       <div className="flex items-center justify-center p-8 bg-[#1F1A20]">
         <div className="w-full max-w-md space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
           <div className="text-center space-y-2">
-            <h2 className="text-3xl font-bold text-white lg:hidden">VogueTrace</h2>
-            <p className="text-muted-foreground">Welcome back. Enter your credentials to access the monitor.</p>
+            <h2 className="text-2xl font-bold text-white lg:hidden uppercase">MLB Social Listening</h2>
+            <p className="text-muted-foreground">Welcome back. Enter your credentials to access the dashboard.</p>
           </div>
 
           <Card className="bg-card/30 border-white/5 backdrop-blur-sm shadow-2xl">
             <form onSubmit={handleSubmit}>
               <CardHeader>
-                <CardTitle className="text-2xl">Authentication</CardTitle>
+                <CardTitle className="text-2xl font-bold">Authentication</CardTitle>
                 <CardDescription>Secure access to trend intelligence</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -104,7 +103,7 @@ export default function LoginPage() {
           </Card>
           
           <p className="text-center text-xs text-muted-foreground">
-            &copy; {new Date().getFullYear()} VogueTrace Intelligence Systems. All rights reserved.
+            &copy; {new Date().getFullYear()} MLB Social Listening Systems. All rights reserved.
           </p>
         </div>
       </div>

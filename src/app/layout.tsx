@@ -1,12 +1,11 @@
-
 import type {Metadata} from 'next';
 import './globals.css';
 import { AuthProvider } from '@/lib/auth-context';
 import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
-  title: 'VogueTrace Monitor | Fashion Trend Analytics',
-  description: 'AI-powered fashion trend monitoring and analytics dashboard.',
+  title: 'MLB Social Listening Dashboard | Fashion Analytics',
+  description: 'AI-powered fashion trend monitoring and social listening dashboard for MLB.',
 };
 
 export default function RootLayout({
