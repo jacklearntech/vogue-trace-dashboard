@@ -3,7 +3,7 @@
 
 import { DashboardShell } from "@/components/dashboard/dashboard-shell"
 
-export default function DashboardLayout({
+export default function InsightLayout({
   children,
 }: {
   children: React.ReactNode
