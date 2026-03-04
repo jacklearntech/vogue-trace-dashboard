@@ -1,14 +1,9 @@
-
 "use client"
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { 
   LayoutDashboard, 
-  TrendingUp, 
-  BarChart3, 
-  Sparkles,
-  Settings,
   LogOut
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -16,9 +11,6 @@ import { useAuth } from "@/lib/auth-context"
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Trends Catalog", href: "/trends", icon: TrendingUp },
-  { name: "Analytics", href: "/analytics", icon: BarChart3 },
-  { name: "AI Insights", href: "/insights", icon: Sparkles },
 ]
 
 export function NavMain() {

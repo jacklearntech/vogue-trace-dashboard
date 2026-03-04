@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo } from "react"
@@ -15,7 +14,6 @@ import {
   Calendar as CalendarIcon
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import Link from "next/link"
 import {
   Select,
   SelectContent,
@@ -193,9 +191,6 @@ export default function DashboardPage() {
                 </div>
               ))}
             </div>
-            <Button variant="link" asChild className="mt-6 p-0 text-primary">
-              <Link href="/analytics">Explore detailed analytics &rarr;</Link>
-            </Button>
           </CardContent>
         </Card>
 
@@ -220,9 +215,9 @@ export default function DashboardPage() {
                 Total market conversation reached {(dashboardStats.totalBuzz / 1000000).toFixed(1)}M, indicating a {parseFloat(dashboardStats.avgYoY) > 0 ? 'expansion' : 'contraction'} in overall consumer interest.
               </p>
             </div>
-            <Button className="w-full bg-secondary text-white hover:bg-secondary/90 mt-2" asChild>
-              <Link href="/insights">Synthesize trends</Link>
-            </Button>
+            <div className="mt-4 p-4 border border-dashed rounded-lg border-muted-foreground/20 text-center">
+              <p className="text-xs text-muted-foreground">Market intelligence analysis complete for {selectedMonth}.</p>
+            </div>
           </CardContent>
         </Card>
       </div>
